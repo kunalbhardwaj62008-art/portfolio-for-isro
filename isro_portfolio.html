@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kunal Bhardwaj — Electronics &amp; Embedded Systems</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blueprint:#0F2A43;
+    --blueprint-line: rgba(255,255,255,0.10);
+    --blueprint-line-strong: rgba(255,255,255,0.22);
+    --paper:#EDE8DC;
+    --paper-raised:#F5F2E8;
+    --ink:#16202B;
+    --ink-soft:#4A5560;
+    --copper:#B9662A;
+    --copper-bright:#D9822F;
+    --led: #7FE0C4;
+    --line: #D8D0BC;
+    --radius: 3px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.55;
+  }
+  a{color:var(--copper); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--copper-bright);
+    outline-offset:3px;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+
+  /* ---------- layout shell with schematic trace ---------- */
+  .sheet{
+    max-width:920px;
+    margin:0 auto;
+    position:relative;
+    padding-left:56px;
+  }
+  @media (max-width:680px){
+    .sheet{ padding-left:34px; }
+  }
+  .trace{
+    position:absolute;
+    left:18px;
+    top:0;
+    bottom:0;
+    width:2px;
+    background-image: linear-gradient(var(--copper) 60%, transparent 0%);
+    background-size: 2px 10px;
+    background-repeat: repeat-y;
+    opacity:0.55;
+  }
+  @media (max-width:680px){ .trace{ left:12px; } }
+  .node{
+    position:absolute;
+    left:18px;
+    width:11px; height:11px;
+    border-radius:50%;
+    background:var(--paper);
+    border:2px solid var(--copper);
+    transform: translate(-50%, -50%);
+  }
+  @media (max-width:680px){ .node{ left:12px; width:9px; height:9px;} }
+  .tp-label{
+    position:absolute;
+    left:40px;
+    top:-9px;
+    font-size:11px;
+    letter-spacing:0.08em;
+    color:var(--ink-soft);
+  }
+  @media (max-width:680px){ .tp-label{ display:none; } }
+
+  /* ---------- header ---------- */
+  header{
+    background:
+      linear-gradient(var(--blueprint-line) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(90deg, var(--blueprint-line) 1px, transparent 1px) 0 0 / 28px 28px,
+      var(--blueprint);
+    color:#EAF1F7;
+    padding:70px 24px 56px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute; inset:0;
+    background: radial-gradient(ellipse at 20% 0%, rgba(217,130,47,0.16), transparent 55%);
+    pointer-events:none;
+  }
+  .header-inner{
+    max-width:920px;
+    margin:0 auto;
+    position:relative;
+  }
+  .kicker{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:0.14em;
+    color:var(--led);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .kicker .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--led);
+    box-shadow:0 0 8px var(--led);
+    animation: blink 2.6s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce){ .kicker .dot{ animation:none; } }
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+  h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(38px, 6vw, 60px);
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+  }
+  .role{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:19px;
+    font-weight:500;
+    color:#C7D6E2;
+    margin:0 0 28px;
+  }
+  .part-number{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:#9FB4C4;
+    border-top:1px solid var(--blueprint-line-strong);
+    padding-top:16px;
+  }
+  .part-number span{ display:inline-block; margin:0 18px 6px 0; }
+  .part-number span b{ color:#D9E4EC; font-weight:500; }
+
+  /* ---------- sections ---------- */
+  main{ padding:0 24px; }
+  section{
+    max-width:920px;
+    margin:0 auto;
+    padding:54px 0;
+    border-bottom:1px solid var(--line);
+  }
+  section:last-of-type{ border-bottom:none; }
+
+  .section-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    color:var(--copper);
+    text-transform:uppercase;
+    margin:0 0 10px;
+  }
+  h2{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:26px;
+    font-weight:600;
+    margin:0 0 22px;
+    color:var(--ink);
+  }
+  .lede{
+    font-size:16.5px;
+    color:var(--ink-soft);
+    max-width:64ch;
+  }
+
+  /* about */
+  .about-grid{
+    display:grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap:40px;
+    align-items:start;
+  }
+  @media (max-width:680px){ .about-grid{ grid-template-columns:1fr; } }
+  .spec-card{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 20px;
+  }
+  .spec-row{
+    display:flex; justify-content:space-between; gap:12px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    padding:8px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .spec-row:last-child{ border-bottom:none; }
+  .spec-row .k{ color:var(--ink-soft); }
+  .spec-row .v{ text-align:right; color:var(--ink); font-weight:500; }
+
+  /* skills as datasheet table */
+  .datasheet{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14.5px;
+  }
+  .datasheet tr{ border-bottom:1px solid var(--line); }
+  .datasheet tr:last-child{ border-bottom:none; }
+  .datasheet td{ padding:14px 10px; vertical-align:top; }
+  .datasheet td.param{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.04em;
+    color:var(--copper);
+    width:220px;
+    white-space:nowrap;
+  }
+  @media (max-width:680px){
+    .datasheet td.param{ white-space:normal; width:auto; display:block; padding-bottom:4px;}
+    .datasheet td{ display:block; padding:6px 10px; }
+    .datasheet tr{ padding:10px 0; display:block; }
+  }
+
+  /* experience */
+  .log-entry{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-left:3px solid var(--copper);
+    border-radius:var(--radius);
+    padding:22px 24px;
+  }
+  .log-head{
+    display:flex; justify-content:space-between; align-items:baseline; gap:16px; flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .log-head .role-title{ font-weight:600; font-size:17px; }
+  .log-head .date{ font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--ink-soft); }
+  .log-entry ul{ margin:0; padding-left:20px; color:var(--ink-soft); font-size:15px; }
+  .log-entry li{ margin-bottom:8px; }
+  .cert-line{
+    margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--ink-soft);
+  }
+
+  /* projects as component cards */
+  .cards{
+    display:flex;
+    flex-wrap:wrap;
+    margin:0 -10px;
+  }
+  .card{
+    position:relative;
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px 22px 20px;
+    width:calc(50% - 20px);
+    margin:0 10px 20px;
+  }
+  @media (max-width:680px){ .card{ width:calc(100% - 20px); } }
+  .card::before, .card::after{
+    content:"";
+    position:absolute;
+    width:9px; height:9px;
+    border-top:2px solid var(--copper);
+    border-left:2px solid var(--copper);
+    top:8px; left:8px;
+  }
+  .card::after{
+    left:auto; right:8px; top:auto; bottom:8px;
+    border-top:none; border-left:none;
+    border-bottom:2px solid var(--copper);
+    border-right:2px solid var(--copper);
+  }
+  .card .pn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; color:var(--copper);
+    letter-spacing:0.1em;
+    margin-bottom:8px;
+  }
+  .card h3{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:18px;
+    margin:0 0 6px;
+  }
+  .card .tag{
+    font-size:12px; color:var(--ink-soft); font-style:italic; margin-bottom:12px;
+  }
+  .card p{
+    font-size:14px; color:var(--ink-soft); margin:0 0 14px;
+  }
+  .card a.view{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .card a.view::after{ content:"→"; transition:transform .15s ease; }
+  .card a.view:hover::after{ transform:translateX(3px); }
+
+  /* competencies */
+  .chips{ display:flex; flex-wrap:wrap; gap:10px; }
+  .chip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:7px 13px;
+    border:1px solid var(--copper);
+    color:var(--copper);
+    border-radius:20px;
+    background:transparent;
+  }
+
+  /* footer */
+  footer{
+    background:
+      linear-gradient(var(--blueprint-line) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(90deg, var(--blueprint-line) 1px, transparent 1px) 0 0 / 28px 28px,
+      var(--blueprint);
+    color:#C7D6E2;
+    padding:44px 24px 34px;
+    margin-top:0;
+  }
+  .footer-inner{
+    max-width:920px; margin:0 auto;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;
+  }
+  .footer-links a{ display:inline-block; margin-right:22px; color:#EAF1F7; font-family:'IBM Plex Mono', monospace; font-size:12.5px; }
+  .footer-note{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:#7C93A5; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="kicker"><span class="dot"></span>STATUS: SEEKING INTERNSHIP / TRAINEE ROLE</div>
+    <h1>Kunal Bhardwaj</h1>
+    <p class="role">Electronics &amp; Embedded Systems — Diploma Engineer</p>
+    <div class="part-number">
+      <span>PART NO. <b>KB&#8209;EMB&#8209;2027</b></span>
+      <span>PROGRAM <b>Medical Electronics Engg. // DSEU</b></span>
+      <span>REV <b>Semester 5</b></span>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="sheet">
+  <div class="trace"></div>
+
+  <section id="about">
+    <div class="node" style="top:44px;"></div>
+    <span class="tp-label" style="top:35px;">TP1</span>
+    <p class="section-label">// About</p>
+    <h2>Hands on the hardware, not just the datasheet</h2>
+    <div class="about-grid">
+      <p class="lede">
+        Diploma student in Medical Electronics Engineering with a track record of building things
+        that actually switch on: sensor rigs, relay-driven controls, and a working air-purification
+        prototype assembled from the ground up. Comfortable moving across the full electronics workflow —
+        circuit design, Arduino-based prototyping, and signal processing — and drawn to the discipline
+        that space and industrial-grade systems demand.
+      </p>
+      <div class="spec-card">
+        <div class="spec-row"><span class="k">INSTITUTION</span><span class="v">DSEU, Ambedkar Shakarpur</span></div>
+        <div class="spec-row"><span class="k">PROGRAM</span><span class="v">Dip. Medical Electronics Engg.</span></div>
+        <div class="spec-row"><span class="k">DURATION</span><span class="v">2024 – 2027</span></div>
+        <div class="spec-row"><span class="k">STATUS</span><span class="v">Semester 5</span></div>
+        <div class="spec-row"><span class="k">LOCATION</span><span class="v">Delhi, India</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills">
+    <div class="node" style="top:44px;"></div>
+    <span class="tp-label" style="top:35px;">TP2</span>
+    <p class="section-label">// Technical Skills</p>
+    <h2>Skill datasheet</h2>
+    <table class="datasheet">
+      <tr><td class="param">EMBEDDED &amp; ELECTRONICS</td><td>Arduino UNO, sensor integration, relay modules, I2C LCD, breadboard prototyping, circuit design</td></tr>
+      <tr><td class="param">EMBEDDED SYSTEMS / IOT</td><td>IoT, sensor-based automation, AQI monitoring, PM2.5 sensing</td></tr>
+      <tr><td class="param">BIOMEDICAL ELECTRONICS</td><td>ECG, SpO₂, NIBP, respiration monitoring, temperature monitoring, biomedical signal simulation</td></tr>
+      <tr><td class="param">PROGRAMMING</td><td>C, Python, HTML, CSS, JavaScript</td></tr>
+      <tr><td class="param">TOOLS</td><td>Arduino IDE, VS Code, GitHub</td></tr>
+    </table>
+  </section>
+
+  <section id="experience">
+    <div class="node" style="top:44px;"></div>
+    <span class="tp-label" style="top:35px;">TP3</span>
+    <p class="section-label">// Experience</p>
+    <h2>Field log</h2>
+    <div class="log-entry">
+      <div class="log-head">
+        <span class="role-title">Embedded Systems Intern — Swajal Water Pvt. Ltd.</span>
+        <span class="date">JUN 2026</span>
+      </div>
+      <ul>
+        <li>Completed a certified one-month embedded systems internship, applying electronics fundamentals within a professional engineering environment.</li>
+        <li>Contributed to ongoing embedded systems projects and tasks, gaining exposure to industry workflows, technical documentation, and practical implementation.</li>
+      </ul>
+      <div class="cert-line">CERT. SERIAL L1802 — issued by Swajal Water Pvt. Ltd., verifiable on request</div>
+    </div>
+  </section>
+
+  <section id="projects">
+    <div class="node" style="top:44px;"></div>
+    <span class="tp-label" style="top:35px;">TP4</span>
+    <p class="section-label">// Projects</p>
+    <h2>Built &amp; verified</h2>
+    <div class="cards">
+
+      <div class="card">
+        <div class="pn">P01 — REAL HARDWARE BUILD</div>
+        <h3>AI Smart Air Purifier</h3>
+        <div class="tag">IoT hardware prototype</div>
+        <p>Arduino UNO–based air-quality monitor and purifier: PM2.5 sensing, HEPA filtration, relay-controlled fan, LCD readout, and a moving-average filtered AQI algorithm. Built for ≈ ₹4,375.</p>
+        <a class="view" href="https://kunalbhardwaj62008-art.github.io/AI-Air-Purifier-Prototype/" target="_blank" rel="noopener">View project</a>
+      </div>
+
+      <div class="card">
+        <div class="pn">P02 — SOFTWARE SIMULATION</div>
+        <h3>Multi-Parameter Patient Monitor</h3>
+        <div class="tag">Biomedical instrumentation</div>
+        <p>Simulates ECG, SpO₂, NIBP, respiration and temperature with real-time waveform rendering, configurable alarm limits, alarm history, and multiple patient scenarios.</p>
+        <a class="view" href="https://kunalbhardwaj62008-art.github.io/AI-Assisted-Multi-parameter-Monitor-Simulator/" target="_blank" rel="noopener">View project</a>
+      </div>
+
+      <div class="card">
+        <div class="pn">P03 — CONTROL SYSTEM</div>
+        <h3>AI-Assisted Drying Oven</h3>
+        <div class="tag">Industrial automation prototype</div>
+        <p>Automated industrial drying oven concept with temperature-control logic and a live monitoring interface for automation applications.</p>
+        <a class="view" href="https://kunalbhardwaj62008-art.github.io/Ai-Assisted-Drying-Oven/" target="_blank" rel="noopener">View project</a>
+      </div>
+
+      <div class="card">
+        <div class="pn">P04 — SIGNAL SIMULATION</div>
+        <h3>ECG &amp; Neuro Simulator</h3>
+        <div class="tag">Biomedical software simulation</div>
+        <p>Web-based simulation of ECG and neural signal waveforms with interactive visualization for biomedical education.</p>
+        <a class="view" href="https://kunalbhardwaj62008-art.github.io/AI-Assisted-ECG-machine-simulation-/" target="_blank" rel="noopener">View project</a>
+      </div>
+
+      <div class="card">
+        <div class="pn">P05 — SOFTWARE PROTOTYPE</div>
+        <h3>STAFDS — Satellite Telemetry &amp; Fault Detection</h3>
+        <div class="tag">Telemetry analysis &amp; fault detection</div>
+        <p>Software-only spacecraft telemetry pipeline: an 18-parameter simulator feeds packet validation, moving-average/EMA filtering, and rule-based fault detection (threshold, rate-of-change, stuck-sensor, correlation) into a live 0–100 health-scoring dashboard.</p>
+        <a class="view" href="https://kunalbhardwaj62008-art.github.io/-Telemetry-in.-Explainable-faults-out/" target="_blank" rel="noopener">View project</a>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="competencies">
+    <div class="node" style="top:44px;"></div>
+    <span class="tp-label" style="top:35px;">TP5</span>
+    <p class="section-label">// Core Competencies</p>
+    <div class="chips">
+      <span class="chip">Electronics Prototyping</span>
+      <span class="chip">Sensor Integration</span>
+      <span class="chip">Embedded Systems</span>
+      <span class="chip">IoT</span>
+      <span class="chip">Circuit Troubleshooting</span>
+      <span class="chip">Biomedical Instrumentation</span>
+      <span class="chip">Digital Electronics</span>
+      <span class="chip">Hardware Testing</span>
+      <span class="chip">System Integration</span>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="mailto:kunalbhardwaj62008@gmail.com">kunalbhardwaj62008@gmail.com</a>
+      <a href="tel:+918527925499">+91 85279 25499</a>
+      <a href="https://github.com/kunalbhardwaj62008-art" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://linkedin.com/in/kunal-bhardwaj-0656933b5" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+    <div class="footer-note">© 2026 KUNAL BHARDWAJ — SHEET 1/1</div>
+  </div>
+</footer>
+
+</body>
+</html>
